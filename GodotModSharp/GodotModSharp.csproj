@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LangVersion>preview</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>0.0.1</Version>
+        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <IsGodotToolsProject>true</IsGodotToolsProject>
+        <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    </PropertyGroup>
+    
+<ItemGroup>
+    <PackageReference Include="Godot.SourceGenerators" Version="4.0.0" />
+    <PackageReference Include="GodotSharp" Version="4.0"/>
+    <PackageReference Include="GodotSharpEditor" Version="4.0"/>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+</ItemGroup>
+    
+<ItemGroup>
+  <ProjectReference Include="..\GodotModSharp.SourceGenerators\GodotModSharp.SourceGenerators\GodotModSharp.SourceGenerators.csproj" />
+</ItemGroup>
+
+</Project>

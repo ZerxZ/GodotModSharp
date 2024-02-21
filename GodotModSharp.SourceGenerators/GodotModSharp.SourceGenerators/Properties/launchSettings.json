@@ -1,0 +1,9 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../GodotModSharp.SourceGenerators.Sample/GodotModSharp.SourceGenerators.Sample.csproj"
+    }
+  }
+}
