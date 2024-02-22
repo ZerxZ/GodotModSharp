@@ -10,7 +10,7 @@ public class MetaData : IMetadata
     public string              Author                   { get; set; } = "";
     public string              Name                     { get; set; } = "";
     public string              Description              { get; set; } = "";
-    public string              Directory                { get; set; } = "";
+    public List<string>        Directories              { get; set; } = new List<string>();
     public IEnumerable<string> Dependencies             { get; set; } = new List<string>();
     public IEnumerable<string> DependenciesOptional     { get; set; } = new List<string>();
     public IEnumerable<string> DependenciesLoadBefore   { get; set; } = new List<string>();
