@@ -8,11 +8,11 @@ using FileAccess = Godot.FileAccess;
 
 namespace GodotModSharp.Loader;
 
-public class ModLoadContext : AssemblyLoadContext
+public class ModPluginLoadContext : AssemblyLoadContext
 {
     protected List<ModDirectory> Directories { get; set; } = new List<ModDirectory>();
 
-    public ModLoadContext(string name, string directory) : base(name, true)
+    public ModPluginLoadContext(string name, string directory) : base(name, true)
     {
         if (string.IsNullOrEmpty(directory))
         {
@@ -20,15 +20,15 @@ public class ModLoadContext : AssemblyLoadContext
         }
         Directories.Add(new ModDirectory(directory));
     }
-    public ModLoadContext(string name, IEnumerable<string> directory) : base(name, true)
+    public ModPluginLoadContext(string name, IEnumerable<string> directory) : base(name, true)
     {
         Directories.AddRange(directory.Where(@path => !string.IsNullOrEmpty(@path)).Select(directories => new ModDirectory(directories)));
     }
-    public ModLoadContext(string name, IEnumerable<ModDirectory> directory) : base(name, true)
+    public ModPluginLoadContext(string name, IEnumerable<ModDirectory> directory) : base(name, true)
     {
         Directories.AddRange(directory);
     }
-    public ModLoadContext(string name, ModDirectory directory) : base(name, true)
+    public ModPluginLoadContext(string name, ModDirectory directory) : base(name, true)
     {
         Directories.Add(directory);
     }
@@ -86,26 +86,28 @@ public class ModLoadContext : AssemblyLoadContext
     public void LoadResourcePackDll(string directory)
     {
         using var dirAccess = DirAccess.Open(directory);
-        var       files     = dirAccess.GetFiles("\\.dll$");
 
-        foreach (var file in files)
+        foreach (var files in dirAccess.GetFiles("\\.dll$"))
         {
-            var dllBytes = FileAccess.GetFileAsBytes(file);
-            if (dllBytes is null)
+            foreach (var file in files)
             {
-                continue;
-            }
-            var pdb = file[..^4] + ".pdb";
+                var dllBytes = FileAccess.GetFileAsBytes(file);
+                if (dllBytes is null)
+                {
+                    continue;
+                }
+                var pdb = file[..^4] + ".pdb";
 
-            using var dllStream = new MemoryStream(dllBytes);
-            if (FileAccess.FileExists(pdb))
-            {
-                var       pdbBytes  = FileAccess.GetFileAsBytes(pdb);
-                using var pdbStream = new MemoryStream(pdbBytes);
-                LoadFromStream(dllStream, pdbStream);
-                continue;
+                using var dllStream = new MemoryStream(dllBytes);
+                if (FileAccess.FileExists(pdb))
+                {
+                    var       pdbBytes  = FileAccess.GetFileAsBytes(pdb);
+                    using var pdbStream = new MemoryStream(pdbBytes);
+                    LoadFromStream(dllStream, pdbStream);
+                    continue;
+                }
+                LoadFromStream(dllStream);
             }
-            LoadFromStream(dllStream);
         }
     }
     public void LoadLocalDll(string directory)

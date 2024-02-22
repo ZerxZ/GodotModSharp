@@ -1,12 +1,7 @@
 ﻿using System.Reflection;
-using System.Runtime.Loader;
-using Godot;
-using GodotModSharp.Attributes;
-using GodotModSharp.Helper;
 using GodotModSharp.Interfaces;
 using GodotModSharp.Loader;
 using GodotModSharp.PackedData;
-using FileAccess = Godot.FileAccess;
 
 namespace GodotModSharp.Modding;
 
@@ -24,7 +19,7 @@ public class ModData : IMod
     public IEnumerable<IPatch>        Patches       { get; private set; } = new List<IPatch>();
     public IEnumerable<IResourcePack> ResourcePacks { get; private set; } = new List<IResourcePack>();
     public IEnumerable<IData>         Data          { get; private set; } = new List<IData>();
-    public ModLoadContext             Context       { get; private set; }
+    public ModPluginLoadContext             Context       { get; private set; }
     public IEnumerable<Type>          PluginsTypes  { get; private set; } = new List<Type>();
     public IEnumerable<IModPlugin>    Plugins       { get; private set; } = new List<IModPlugin>();
 
@@ -34,7 +29,7 @@ public class ModData : IMod
 
     public void LoadAssemblies()
     {
-        Context = new ModLoadContext(Metadata.Name, Metadata.Directories);
+        Context = new ModPluginLoadContext(Metadata.Name, Metadata.Directories);
         Context.LoadDirectoryDll();
         Assemblies = Context.Assemblies;
         PluginsTypes = Context.GetPluginsTypes();
