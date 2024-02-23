@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Godot;
 using JetBrains.Annotations;
 
+namespace GodotModSharp.Helper;
 
 public static class DirAccessHelper
 {
@@ -25,78 +21,75 @@ public static class DirAccessHelper
 
     public ref struct DirAccessFilesEnumerator(DirAccess dirAccess, [RegexPattern] string expression, SearchOption searchOption = SearchOption.AllDirectories)
     {
-        private readonly Regex     _regex     = new Regex(expression, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private          DirAccess _dirAccess = dirAccess;
+        private readonly Regex _regex = new Regex(expression, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public           ReadOnlySpan<string>     Current          { get; private set; } = ReadOnlySpan<string>.Empty;
-        private          Queue<string>            CurrentDirectory { get; set; }         = new Queue<string>();
-        public           DirAccess                CurrentDirAccess;
+        private          List<string>             CurrentDirectory { get; set; }         = new List<string>(128);
         private          bool                     _initialized = false;
-        private readonly List<string>             _fileList    = new List<string>();
+        private readonly List<string>             _fileList    = new List<string>(128);
         public           string                   CurrentDirectoryPath;
-        public           string                   RootPath = dirAccess.GetCurrentDir();
         public           DirAccessFilesEnumerator GetEnumerator() => this;
         public bool MoveNext()
         {
+            string[] files;
+            string   currentDirectoryPath;
+            string[] directories;
             if (!_initialized)
             {
                 _initialized = true;
-                CurrentDirAccess = _dirAccess;
                 CurrentDirectoryPath = dirAccess.GetCurrentDir();
-            }
-            else
-            {
-                if (CurrentDirectory.Count == 0)
+                currentDirectoryPath = CurrentDirectoryPath;
+                files = dirAccess.GetFiles() ?? Array.Empty<string>();
+                foreach (var path in files)
                 {
-                    return false;
+                    if (!_regex.IsMatch(path)) continue;
+                    _fileList.Add(GetFullPath(path));
                 }
-                var nowDirectory = CurrentDirectory.Dequeue();
-                var relative     = Path.GetRelativePath(CurrentDirectoryPath, nowDirectory);
-                CurrentDirectoryPath = nowDirectory;
-                // GD.Print(relative);
-                _dirAccess.ChangeDir(relative);
-            }
-
-            switch (CurrentDirAccess.ListDirBegin())
-            {
-
-                case Error.Ok:
-                    var path = CurrentDirAccess.GetNext();
-                    while (true)
-                    {
-                        if (string.IsNullOrEmpty(path))
-                        {
-                            break;
-                        }
-                        var fullpaths = $"{CurrentDirectoryPath}/{path}";
-                        if (CurrentDirAccess.DirExists(fullpaths))
-                        {
-                            if (searchOption == SearchOption.AllDirectories)
-                            {
-                                CurrentDirectory.Enqueue(fullpaths);
-                            }
-
-                        }
-                        else
-                        {
-                            if (_regex.IsMatch(path))
-                            {
-                                _fileList.Add(fullpaths);
-                            }
-
-                        }
-                        path = CurrentDirAccess.GetNext();
-                    }
-
+                if (_fileList.Count > 0)
+                {
                     Current = _fileList.ToArray().AsSpan();
                     _fileList.Clear();
-                    return true;
-                case Error.Failed:
-                    Current = Array.Empty<string>();
-                    return false;
+                }
+                else
+                {
+                    Current = ReadOnlySpan<string>.Empty;
+                }
+                if (searchOption != SearchOption.AllDirectories) return false;
+                directories = dirAccess.GetDirectories() ?? Array.Empty<string>();
+
+                CurrentDirectory.AddRange(directories.Select(GetFullPath));
+                return true;
             }
-            Current = Array.Empty<string>();
-            return false;
+
+            if (CurrentDirectory.Count == 0)
+            {
+                Current = ReadOnlySpan<string>.Empty;
+                return false;
+            }
+            var nowDirectory = CurrentDirectory[0];
+            currentDirectoryPath = nowDirectory;
+            CurrentDirectory.RemoveAt(0);
+            var relative = Path.GetRelativePath(CurrentDirectoryPath, nowDirectory);
+            CurrentDirectoryPath = nowDirectory;
+            dirAccess.ChangeDir(relative);
+            directories = dirAccess.GetDirectories() ?? Array.Empty<string>();
+            CurrentDirectory.AddRange(directories.Select(GetFullPath));
+            files = dirAccess.GetFiles() ?? Array.Empty<string>();
+            foreach (var path in files)
+            {
+                if (!_regex.IsMatch(path)) continue;
+                _fileList.Add(GetFullPath(path));
+            }
+            if (_fileList.Count > 0)
+            {
+                Current = _fileList.ToArray().AsSpan();
+                _fileList.Clear();
+                return true;
+            }
+
+            Current = ReadOnlySpan<string>.Empty;
+            return true;
+            string GetFullPath(string path) => $"{currentDirectoryPath}/{path}";
         }
     }
 }

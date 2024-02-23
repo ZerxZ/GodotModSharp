@@ -1,7 +1,7 @@
 ﻿using Godot;
 using GodotModSharp.Helper;
 
-namespace GodotModSharp.Interfaces;
+namespace GodotModSharp.Utils;
 
 public class SingletonNode<TNode> where TNode : Node
 {

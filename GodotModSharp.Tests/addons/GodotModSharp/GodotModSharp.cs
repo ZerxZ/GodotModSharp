@@ -1,8 +1,7 @@
 #if TOOLS
 using Godot;
-using System;
 
-namespace GodotModSharp.Modding;
+namespace GodotModSharp.Tests.addons.GodotModSharp;
 [Tool]
 public partial class GodotModSharp : EditorPlugin
 {

@@ -1,4 +1,4 @@
-﻿namespace GodotModSharp.Interfaces;
+﻿namespace GodotModSharp.Utils;
 
 public class Singleton<T>
 {

@@ -2,6 +2,7 @@
 using Godot;
 using GodotModSharp.Interfaces;
 using GodotModSharp.Loggers;
+using GodotModSharp.Utils;
 
 namespace GodotModSharp.Modding;
 
