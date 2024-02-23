@@ -87,27 +87,24 @@ public class ModPluginLoadContext : AssemblyLoadContext
     {
         using var dirAccess = DirAccess.Open(directory);
 
-        foreach (var files in dirAccess.GetFiles("\\.dll$"))
+        foreach (var file in dirAccess.GetFiles("\\.dll$"))
         {
-            foreach (var file in files)
+            var dllBytes = FileAccess.GetFileAsBytes(file);
+            if (dllBytes is null)
             {
-                var dllBytes = FileAccess.GetFileAsBytes(file);
-                if (dllBytes is null)
-                {
-                    continue;
-                }
-                var pdb = file[..^4] + ".pdb";
-
-                using var dllStream = new MemoryStream(dllBytes);
-                if (FileAccess.FileExists(pdb))
-                {
-                    var       pdbBytes  = FileAccess.GetFileAsBytes(pdb);
-                    using var pdbStream = new MemoryStream(pdbBytes);
-                    LoadFromStream(dllStream, pdbStream);
-                    continue;
-                }
-                LoadFromStream(dllStream);
+                continue;
             }
+            var pdb = file[..^4] + ".pdb";
+
+            using var dllStream = new MemoryStream(dllBytes);
+            if (FileAccess.FileExists(pdb))
+            {
+                var       pdbBytes  = FileAccess.GetFileAsBytes(pdb);
+                using var pdbStream = new MemoryStream(pdbBytes);
+                LoadFromStream(dllStream, pdbStream);
+                continue;
+            }
+            LoadFromStream(dllStream);
         }
     }
     public void LoadLocalDll(string directory)
